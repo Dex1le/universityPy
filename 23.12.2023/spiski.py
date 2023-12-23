@@ -22,6 +22,8 @@ if __name__ == '__main__':
      a = [2, 6, 10, 2]
      b = [1, 2, 8, 10]
      c = [2, 2, 4]
+     d = [2, 3, 3, 3, 4, 5]
      print(split_list(a))
      print(split_list(b))
      print(split_list(c))
+     print(split_list(d))
