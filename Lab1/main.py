@@ -5,7 +5,7 @@ def find_expression(numbers, target_sum, current_sum, expression, first_num):
             print(expression)
             exit()
         else:
-            return
+            return ('No solution')
 
     number = numbers[0]
 
@@ -14,7 +14,7 @@ def find_expression(numbers, target_sum, current_sum, expression, first_num):
     find_expression(numbers[1:], target_sum, current_sum - number, expression + "-" + str(number), first_num)
 
 # Считываем входные данные из файла
-with open("/Users/dex1le/PycharmProjects/university/Lab1/input.txt") as file:
+with open('/Users/dex1le/PycharmProjects/university/Lab1/input.txt') as file:
     input_data = file.readline().split()
     n = int(input_data[0])
     numbers = [int(input_data[i]) for i in range(1, n + 1)]
@@ -23,4 +23,5 @@ with open("/Users/dex1le/PycharmProjects/university/Lab1/input.txt") as file:
     first_num = numbers.pop(0)
 
 # Запускаем функцию для поиска решения
-find_expression(numbers, target_sum, first_num, "", first_num)
+with open('/Users/dex1le/PycharmProjects/university/Lab1/output.txt', 'w') as file:
+    file.write(find_expression(numbers, target_sum, first_num, "", first_num))
