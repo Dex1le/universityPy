@@ -1,4 +1,4 @@
-def split_list(nums):
+def split_list(nums, C, N):
     total_sum = sum(nums)
     if total_sum % 2 != 0:
         return False
