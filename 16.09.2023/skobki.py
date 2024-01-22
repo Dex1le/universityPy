@@ -1,54 +1,37 @@
-# def main():
+def brackets_right(s):
+    stack = []
+    matching = {'(': ')', '[': ']', '{': '}'}
+    for char in s:
+        if char in matching.keys():
+            stack.append(char)
+        elif char in matching.values():
+            if not stack or matching[stack.pop()] != char:
+                return False
+    return len(stack) == 0
 
-s = input()
 
-s1 = s
-if '[' or '{' or '(' or ')' or '}' or ']' in s:
-    s1 = s1.replace('(', ' ( ')
-    s1 = s1.replace('[', ' [ ')
-    s1 = s1.replace(']', ' ] ')
-    s1 = s1.replace('}', ' } ')
-    s1 = s1.replace('{', ' { ')
-    s1 = s1.replace(')', ' ) ')
-s1 = s1.split()
+def LongestRightS(s):
+    if brackets_right(s):
+        return True
+    else:
+        res = ""
+        n = 0
+        for l in range(len(s) - 1):
+            for r in range(l + 1, len(s)):
+                if brackets_right(s[l:r]):
+                    if n < len(s[l:r]):
+                        n = len(s[l:r])
+                        res = s[l:r]
+        if res:
+            return res
+        else:
+            return False
 
-a1 = s
-k = 0
-a1 = a1.replace('[', ' ')
-a1 = a1.replace(']', ' ')
-a1 = a1.replace('{', ' ')
-a1 = a1.replace('}', ' ')
-while '(' and ')' in a1:
-    a1 = a1.replace('(', ':', 1)
-    a1 = a1.replace(')', ';', 1)
-    k += 1
 
-a2 = s
-k1 = 0
-a2 = a2.replace(')', ' ')
-a2 = a2.replace('(', ' ')
-a2 = a2.replace('{', ' ')
-a2 = a2.replace('}', ' ')
-while '[' and ']' in a2:
-    a2 = a2.replace('[', ':', 1)
-    a2 = a2.replace(']', ';', 1)
-    k1+= 1
+def main():
+    s = input()
+    print(LongestRightS(s))
 
-a3 = s
-k2 = 0
-a3 = a3.replace('[', ' ')
-a3 = a3.replace(']', ' ')
-a3 = a3.replace(')', ' ')
-a3 = a3.replace('(', ' ')
-print(a3)
-while '{' and '}' in a3:
-    a3 = a3.replace('{', ':', 1)
-    a3 = a3.replace('}', ';', 1)
-    k2 += 1
-    print(a3)
 
-if ('(' or ')' in a1):
-    print('False')
-else:
-    print('True')
-
+if __name__ == "__main__":
+    main()
