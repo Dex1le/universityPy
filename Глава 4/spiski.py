@@ -1,29 +1,33 @@
-def split_list(nums, C, N):
-    total_sum = sum(nums)
-    if total_sum % 2 != 0:
-        return False
+def find_closest_sum(nums, target):
+    nums.sort()  # Сначала отсортируем список чисел
 
-    target_sum = total_sum // 2
-    current_sum = 0
-    first_list = []
-    second_list = []
+    closest_sum = float('inf')  # Инициализируем переменную с бесконечным значением
+    result = []
 
-    for num in nums:
-        if current_sum + num <= target_sum:
-            first_list.append(num)
-            current_sum += num
-        else:
-            second_list.append(num)
+    for i in range(len(nums) - 2):
+        left = i + 1
+        right = len(nums) - 1
 
-    return True
+        while left < right:
+            current_sum = nums[i] + nums[left] + nums[right]
+            if abs(current_sum - target) < abs(closest_sum - target):
+                closest_sum = current_sum
+                result = [nums[i], nums[left], nums[right]]
 
+            if current_sum < target:
+                left += 1
+            elif current_sum > target:
+                right -= 1
+            else:
+                return result
 
-if __name__ == '__main__':
-     a = [2, 6, 10, 2]
-     b = [1, 2, 8, 10]
-     c = [2, 2, 4]
-     d = [2, 3, 3, 3, 4, 5]
-     print(split_list(a))
-     print(split_list(b))
-     print(split_list(c))
-     print(split_list(d))
+    return result
+
+def main():
+    nums = [int(num) for num in input().split()]
+    target = int(input())
+    closest_sum = find_closest_sum(nums, target)
+    print(closest_sum)
+
+if __name__ == "__main__":
+    main()
