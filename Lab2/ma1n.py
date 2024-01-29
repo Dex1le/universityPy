@@ -40,6 +40,7 @@ def create_board(N, solutions: list[tuple[int, int]]) -> list[list[str]]:
         poser(row, col, board)
     return board
 
+
 # Функция возвращающая список ходов
 def moves(row: int, col: int) -> list:
 
