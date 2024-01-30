@@ -1,8 +1,6 @@
 def main(a,b):
     l1 = list()
     l2 = list()
-    l3 = list()
-    l4 = list()
 
     l3 = a.copy()
     l4 = b.copy()

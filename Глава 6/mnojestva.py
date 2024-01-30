@@ -12,7 +12,7 @@ def count_unique_subsets(elements):
     return len(unique_subsets), unique_subsets
 
 def main():
-    elements = [int(element) for element in input().split()]
+    elements = list(set(element for element in input().split()))
     result_count, result_subsets = count_unique_subsets(elements)
     print(result_count)
     print(result_subsets)
