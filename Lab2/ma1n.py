@@ -42,7 +42,7 @@ def create_board(N, solutions: list[tuple[int, int]]) -> list[list[str]]:
 
 
 # Функция возвращающая список ходов
-def moves(row: int, col: int) -> list:
+def move(row: int, col: int) -> list:
 
     moves = {
         (row + 1, col + 1),
@@ -95,7 +95,7 @@ def solve(L: int, N: int, solutions: list, allSolutions: list, startTime: float)
     show_solutions(allSolutions, startTime)
 
 
-# Рекурсивная функция для обратного отслеживания
+# Рекурсивная функция
 def backtrack(
     L: int,
     N: int,
@@ -114,7 +114,7 @@ def backtrack(
     for r in range(row, N):
         start_col = col + 1 if r == row else 0
         for c in range(start_col, N):
-            if (r, c) not in solutions and not moves(r, c).intersection(solutions):
+            if (r, c) not in solutions and not move(r, c).intersection(solutions):
                 solutions.append((r, c))
                 backtrack(L - 1, N, r, c, solutions, allSolutions)
                 solutions.pop()
