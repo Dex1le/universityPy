@@ -300,6 +300,13 @@ class SolutionWindow(QMainWindow):
             self.board_layout.itemAt(i).widget().deleteLater()
 
         board = self.game.create_solution_board(self.solution)
+        possible_moves = set()
+
+        # Собираем все возможные ходы фигур
+        for row, col in self.solution:
+            moves = self.game.possible_moves(row, col)
+            possible_moves.update(moves)
+
         for i in range(self.game.board.size):
             for j in range(self.game.board.size):
                 label = QLabel()
@@ -311,7 +318,7 @@ class SolutionWindow(QMainWindow):
                 elif (i, j) in self.solution:
                     label.setText('♔')
                     label.setStyleSheet("background-color: green; color: black; border: 1px solid black;")
-                elif board[i][j] == '*':
+                elif (i, j) in possible_moves:
                     label.setStyleSheet("background-color: red; border: 1px solid black;")
                 else:
                     color = 'white' if (i + j) % 2 == 0 else 'black'
