@@ -8,7 +8,9 @@ from PySide6.QtGui import QMouseEvent
 
 
 class Board:
+
     # Класс для представления шахматной доски
+
     def __init__(self, size: int):  # Инициализация доски заданного размера
         self.size = size
         self.grid = [['0'] * size for _ in range(size)]
@@ -25,7 +27,9 @@ class Board:
 
 
 class Game:
+
     # Класс для представления игры и её логики
+
     def __init__(self, board_size: int, num_figures: int, initial_positions: List[Tuple[int, int]]):  # Инициализация игры
         self.board = Board(board_size)
         self.num_figures = num_figures
@@ -53,7 +57,8 @@ class Game:
                 if self.board.get_board()[i][j] == '*':
                     self.board.update_board(i, j, '0')
 
-    def is_valid_move(self, row: int, col: int, solutions: List[Tuple[int, int]]) -> bool:  # Проверка, можно ли установить фигуру на данную клетку
+    def is_valid_move(self, row: int, col: int, solutions: List[Tuple[int, int]]) -> bool:
+        # Проверка, можно ли установить фигуру на данную клетку
         if self.board.get_board()[row][col] != '0':
             return False
 
@@ -113,11 +118,15 @@ class Game:
                 solution_str = " ".join([f"({row},{col})" for row, col in solution])
                 output_file.write(solution_str + "\n")
 
-    def create_solution_board(self, solution: List[Tuple[int, int]]) -> List[List[str]]:  # Создание доски с указанным решением
+    def create_solution_board(self, solution: List[Tuple[int, int]]) -> List[List[str]]:
+
+        # Создание доски с указанным решением
+
         board = Board(self.board.size)
         for row, col in self.initial_positions:
             board.update_board(row, col, '♔')
             self.mark_invalid_moves(row, col)
+
         for row, col in solution:
             board.update_board(row, col, '♔')
             self.mark_invalid_moves(row, col)
@@ -125,7 +134,9 @@ class Game:
 
 
 class MainWindow(QMainWindow):
+
     # Класс главного окна приложения с графическим интерфейсом
+
     def __init__(self):  # Инициализация главного окна
         super().__init__()
         self.setWindowTitle("Ввод данных")
@@ -175,11 +186,13 @@ class MainWindow(QMainWindow):
 
 
 class GameWindow(QMainWindow):
+
     # Класс окна игры с графическим интерфейсом
+
     def __init__(self, board_size: int, num_figures: int, initial_positions: List[Tuple[int, int]]):  # Инициализация окна игры
         super().__init__()
         self.game = Game(board_size, num_figures, initial_positions)
-        self.setWindowTitle("Game Solver")
+        self.setWindowTitle("Игра")
         self.setGeometry(100, 100, 600, 600)
 
         self.init_ui()
@@ -215,11 +228,14 @@ class GameWindow(QMainWindow):
                 if (i, j) in self.game.user_positions:
                     label.setText('♔')
                     label.setStyleSheet("background-color: red; color: black; border: 1px solid black;")
+
                 elif (i, j) in self.game.initial_positions:
                     label.setText('♔')
                     label.setStyleSheet("background-color: green; color: black; border: 1px solid black;")
+
                 elif board[i][j] == '*':
                     label.setStyleSheet("background-color: red; border: 1px solid black;")
+
                 else:
                     color = 'white' if (i + j) % 2 == 0 else 'black'
                     label.setStyleSheet(f"background-color: {color}; border: 1px solid black;")
@@ -232,6 +248,7 @@ class GameWindow(QMainWindow):
     def eventFilter(self, source, event):  # Обработка кликов по клеткам доски
         if event.type() == QMouseEvent.MouseButtonPress:
             row, col = source.row, source.col
+
             if event.button() == Qt.LeftButton:
                 if self.game.board.get_board()[row][col] == '0':
                     self.game.make_a_move(row, col)
@@ -243,6 +260,7 @@ class GameWindow(QMainWindow):
                     for pos in self.game.user_positions:
                         self.game.make_a_move(*pos)
                 self.update_board_ui()
+
             elif event.button() == Qt.RightButton:
                 if self.game.board.get_board()[row][col] == '♔' and (row, col) in self.game.user_positions:
                     self.game.board.update_board(row, col, '0')
@@ -266,10 +284,12 @@ class GameWindow(QMainWindow):
 
 
 class SolutionWindow(QMainWindow):
+
     # Класс окна для отображения решения
+
     def __init__(self, game: Game):  # Инициализация окна с решением
         super().__init__()
-        self.setWindowTitle("Solution")
+        self.setWindowTitle("Решение")
         self.setGeometry(100, 100, 600, 600)
 
         self.game = game
@@ -312,14 +332,18 @@ class SolutionWindow(QMainWindow):
                 label = QLabel()
                 label.setAlignment(Qt.AlignCenter)
                 label.setFixedSize(50, 50)
+
                 if (i, j) in self.game.user_positions:
                     label.setText('♔')
                     label.setStyleSheet("background-color: blue; color: black; border: 1px solid black;")
+
                 elif (i, j) in self.solution:
                     label.setText('♔')
                     label.setStyleSheet("background-color: green; color: black; border: 1px solid black;")
+
                 elif (i, j) in possible_moves:
                     label.setStyleSheet("background-color: red; border: 1px solid black;")
+
                 else:
                     color = 'white' if (i + j) % 2 == 0 else 'black'
                     label.setStyleSheet(f"background-color: {color}; border: 1px solid black;")
