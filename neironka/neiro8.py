@@ -11,7 +11,6 @@ tf.get_logger().setLevel(logging.ERROR)
 EPOCHS = 500
 BATCH_SIZE = 16
 
-
 # Чтение и стандартизация данных
 boston_housing = keras.datasets.boston_housing
 (raw_x_train, y_train), (raw_x_test, y_test) = boston_housing.load_data()
