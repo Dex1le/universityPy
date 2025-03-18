@@ -5,20 +5,14 @@ import matplotlib.pyplot as plt
 import random
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, GlobalAveragePooling2D, BatchNormalization
-from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
 import os
-
-# Ограничение потоков TensorFlow для снижения нагрузки на CPU
-os.environ["TF_NUM_INTEROP_THREADS"] = "3"
-os.environ["TF_NUM_INTRAOP_THREADS"] = "3"
-os.environ["OMP_NUM_THREADS"] = "4"
 
 # Гиперпараметры
 IMG_SIZE = 500
 BATCH_SIZE = 128
-EPOCHS = 10
-FINE_TUNE_EPOCHS = 20
+EPOCHS = 20
+FINE_TUNE_EPOCHS = 5
 
 # Функция для загрузки данных из CIFAR-10
 def load_cifar10_batch(file_path):
@@ -66,48 +60,36 @@ def show_random_images(images, labels, class_names, num_samples=10):
 class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 show_random_images(test_images, test_labels, class_names)
 
-# Улучшенная CNN с дополнительными гиперпараметрами
-cnn_model = Sequential([
-    Conv2D(64, (3, 3), activation='relu', padding='same', input_shape=(32, 32, 3)),
-    BatchNormalization(),
+# Создание модели по конфигурации 6
+model = Sequential([
+    Conv2D(64, (4, 4), activation='tanh', padding='same', input_shape=(32, 32, 3)),
     MaxPooling2D(pool_size=(2, 2)),
-    Conv2D(128, (3, 3), activation='relu', padding='same'),
-    BatchNormalization(),
+    Conv2D(64, (2, 2), activation='tanh', padding='same'),
     MaxPooling2D(pool_size=(2, 2)),
-    Conv2D(256, (3, 3), activation='relu', padding='same'),
-    BatchNormalization(),
+    Conv2D(32, (3, 3), activation='tanh', padding='same'),
+    Conv2D(32, (3, 3), activation='tanh', padding='same'),
     MaxPooling2D(pool_size=(2, 2)),
     Flatten(),
-    Dense(256, activation='relu'),
-    Dropout(0.5),
-    Dense(128, activation='relu'),
-    Dropout(0.3),
+    Dense(64, activation='tanh'),
+    Dense(64, activation='tanh'),
     Dense(10, activation='softmax')
 ])
 
-# Компиляция модели с оптимизированными гиперпараметрами
-cnn_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0005), loss='categorical_crossentropy', metrics=['accuracy'])
+# Компиляция модели
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0005), loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Обучение модели
-cnn_model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=EPOCHS, batch_size=BATCH_SIZE)
+model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=EPOCHS, batch_size=BATCH_SIZE)
 
-# Улучшенное трансферное обучение с MobileNetV2
-base_model = MobileNetV2(input_shape=(32, 32, 3), include_top=False, weights='imagenet')
-base_model.trainable = False  # Заморозка весов
+# Размораживание слоев для дообучения (fine-tuning)
+for layer in model.layers[:-3]:
+    layer.trainable = True
 
-transfer_model = Sequential([
-    base_model,
-    GlobalAveragePooling2D(),
-    Dense(256, activation='relu'),
-    Dropout(0.5),
-    Dense(128, activation='relu'),
-    Dropout(0.3),
-    Dense(10, activation='softmax')
-])
+# Компиляция после разморозки
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
 
-# Компиляция и обучение с дополнительными гиперпараметрами
-transfer_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0005), loss='categorical_crossentropy', metrics=['accuracy'])
-transfer_model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=FINE_TUNE_EPOCHS, batch_size=BATCH_SIZE)
+# Переобучение модели
+model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=FINE_TUNE_EPOCHS, batch_size=BATCH_SIZE)
 
 # Отображение случайных предсказаний
 def show_random_predictions(model, images, labels, class_names, num_samples=10):
@@ -117,8 +99,8 @@ def show_random_predictions(model, images, labels, class_names, num_samples=10):
     for i, idx in enumerate(indices):
         plt.subplot(2, 5, i + 1)
         plt.imshow(images[idx])
-        plt.title(f"Pred: {class_names[np.argmax(predictions[i])]}\nTrue: {class_names[np.argmax(labels[idx])]}" )
+        plt.title(f"Pred: {class_names[np.argmax(predictions[i])]}\nTrue: {class_names[np.argmax(labels[idx])]}")
         plt.axis("off")
     plt.show()
 
-show_random_predictions(transfer_model, test_images, test_labels, class_names)
+show_random_predictions(model, test_images, test_labels, class_names)
