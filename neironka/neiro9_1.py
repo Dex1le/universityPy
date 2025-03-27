@@ -42,3 +42,4 @@ def plot_output(title, tensor):
 # Показываем результаты
 plot_output("Manual conv2d", outputs_manual.numpy())
 plot_output("Keras Conv2D", outputs_layer.numpy())
+#gh

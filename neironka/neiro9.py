@@ -105,3 +105,4 @@ for cfg in configs:
 
     _, acc = model.evaluate(test_images, test_labels, verbose=0)
     print(f'✅ Точность на тесте: {acc:.4f}\n')
+    #gh
