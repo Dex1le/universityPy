@@ -13,36 +13,40 @@ test_images = (test_images - mean) / std
 train_labels = to_categorical(train_labels, 10)
 test_labels = to_categorical(test_labels, 10)
 
+# Названия классов CIFAR-10
+class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+               'dog', 'frog', 'horse', 'ship', 'truck']
 
 # Конфигурации
+
 def build_model(config_name):
     model = keras.Sequential()
     if config_name == 'Conf1':
-        model.add(layers.Conv2D(64, (5, 5), strides=2, activation='relu', padding='same', input_shape=(32, 32, 3)))
-        model.add(layers.Conv2D(64, (3, 3), strides=2, activation='relu', padding='same'))
+        model.add(layers.Conv2D(64, (5,5), strides=2, activation='relu', padding='same', input_shape=(32,32,3)))
+        model.add(layers.Conv2D(64, (3,3), strides=2, activation='relu', padding='same'))
         model.add(layers.Flatten())
         model.add(layers.Dense(10, activation='softmax'))
 
     elif config_name == 'Conf2':
-        model.add(layers.Conv2D(64, (3, 3), strides=2, activation='relu', padding='same', input_shape=(32, 32, 3)))
-        model.add(layers.Conv2D(16, (2, 2), strides=2, activation='relu', padding='same'))
+        model.add(layers.Conv2D(64, (3,3), strides=2, activation='relu', padding='same', input_shape=(32,32,3)))
+        model.add(layers.Conv2D(16, (2,2), strides=2, activation='relu', padding='same'))
         model.add(layers.Flatten())
         model.add(layers.Dense(10, activation='softmax'))
 
     elif config_name == 'Conf3':
-        model.add(layers.Conv2D(64, (3, 3), strides=2, activation='relu', padding='same', input_shape=(32, 32, 3)))
+        model.add(layers.Conv2D(64, (3,3), strides=2, activation='relu', padding='same', input_shape=(32,32,3)))
         model.add(layers.Dropout(0.2))
-        model.add(layers.Conv2D(16, (2, 2), strides=2, activation='relu', padding='same'))
+        model.add(layers.Conv2D(16, (2,2), strides=2, activation='relu', padding='same'))
         model.add(layers.Dropout(0.2))
         model.add(layers.Flatten())
         model.add(layers.Dense(10, activation='softmax'))
 
     elif config_name == 'Conf4':
-        model.add(layers.Conv2D(64, (4, 4), strides=1, activation='relu', padding='same', input_shape=(32, 32, 3)))
+        model.add(layers.Conv2D(64, (4,4), strides=1, activation='relu', padding='same', input_shape=(32,32,3)))
         model.add(layers.Dropout(0.2))
-        model.add(layers.Conv2D(64, (2, 2), strides=2, activation='relu', padding='same'))
+        model.add(layers.Conv2D(64, (2,2), strides=2, activation='relu', padding='same'))
         model.add(layers.Dropout(0.2))
-        model.add(layers.Conv2D(32, (3, 3), strides=1, activation='relu', padding='same'))
+        model.add(layers.Conv2D(32, (3,3), strides=1, activation='relu', padding='same'))
         model.add(layers.Dropout(0.2))
         model.add(layers.MaxPooling2D(pool_size=2, strides=2))
         model.add(layers.Flatten())
@@ -51,13 +55,13 @@ def build_model(config_name):
         model.add(layers.Dense(10, activation='softmax'))
 
     elif config_name == 'Conf5':
-        model.add(layers.Conv2D(64, (4, 4), strides=1, activation='relu', padding='same', input_shape=(32, 32, 3)))
+        model.add(layers.Conv2D(64, (4,4), strides=1, activation='relu', padding='same', input_shape=(32,32,3)))
         model.add(layers.Dropout(0.2))
-        model.add(layers.Conv2D(64, (2, 2), strides=2, activation='relu', padding='same'))
+        model.add(layers.Conv2D(64, (2,2), strides=2, activation='relu', padding='same'))
         model.add(layers.Dropout(0.2))
-        model.add(layers.Conv2D(32, (3, 3), strides=1, activation='relu', padding='same'))
+        model.add(layers.Conv2D(32, (3,3), strides=1, activation='relu', padding='same'))
         model.add(layers.Dropout(0.2))
-        model.add(layers.Conv2D(32, (3, 3), strides=1, activation='relu', padding='same'))
+        model.add(layers.Conv2D(32, (3,3), strides=1, activation='relu', padding='same'))
         model.add(layers.MaxPooling2D(pool_size=2, strides=2))
         model.add(layers.Flatten())
         model.add(layers.Dense(64, activation='relu'))
@@ -67,10 +71,10 @@ def build_model(config_name):
         model.add(layers.Dense(10, activation='softmax'))
 
     elif config_name == 'Conf6':
-        model.add(layers.Conv2D(64, (4, 4), strides=1, activation='tanh', padding='same', input_shape=(32, 32, 3)))
-        model.add(layers.Conv2D(64, (2, 2), strides=2, activation='tanh', padding='same'))
-        model.add(layers.Conv2D(32, (3, 3), strides=1, activation='tanh', padding='same'))
-        model.add(layers.Conv2D(32, (3, 3), strides=1, activation='tanh', padding='same'))
+        model.add(layers.Conv2D(64, (4,4), strides=1, activation='tanh', padding='same', input_shape=(32,32,3)))
+        model.add(layers.Conv2D(64, (2,2), strides=2, activation='tanh', padding='same'))
+        model.add(layers.Conv2D(32, (3,3), strides=1, activation='tanh', padding='same'))
+        model.add(layers.Conv2D(32, (3,3), strides=1, activation='tanh', padding='same'))
         model.add(layers.MaxPooling2D(pool_size=2, strides=2))
         model.add(layers.Flatten())
         model.add(layers.Dense(64, activation='tanh'))
@@ -82,7 +86,6 @@ def build_model(config_name):
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
-
 # Обучение и визуализация
 configs = ['Conf1', 'Conf2', 'Conf3', 'Conf4', 'Conf5', 'Conf6']
 for cfg in configs:
@@ -92,7 +95,7 @@ for cfg in configs:
                         validation_data=(test_images, test_labels), verbose=0)
 
     # График
-    plt.figure(figsize=(6, 4))
+    plt.figure(figsize=(6,4))
     plt.plot(history.history['loss'], label='train')
     plt.plot(history.history['val_loss'], label='test')
     plt.title(cfg)
@@ -105,4 +108,20 @@ for cfg in configs:
 
     _, acc = model.evaluate(test_images, test_labels, verbose=0)
     print(f'✅ Точность на тесте: {acc:.4f}\n')
-    #gh
+
+    # Примеры распознавания
+    sample_indexes = np.random.choice(len(test_images), 5, replace=False)
+    sample_images = test_images[sample_indexes]
+    sample_labels = test_labels[sample_indexes]
+    predictions = model.predict(sample_images, verbose=0)
+
+    plt.figure(figsize=(10, 2))
+    for i, img in enumerate(sample_images):
+        plt.subplot(1, 5, i + 1)
+        plt.imshow((img * std + mean).astype(np.uint8))  # обратная стандартизация
+        true_label = class_names[np.argmax(sample_labels[i])]
+        pred_label = class_names[np.argmax(predictions[i])]
+        plt.title(f'True: {true_label}\nPred: {pred_label}')
+        plt.axis('off')
+    plt.tight_layout()
+    plt.show()
