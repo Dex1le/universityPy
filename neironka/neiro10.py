@@ -1,106 +1,141 @@
-import pickle
-import numpy as np
+# Импорт библиотек для построения нейросетей и визуализации
 import tensorflow as tf
-import matplotlib.pyplot as plt
-import random
-from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
-import os
+from tensorflow import keras
+from tensorflow.keras.models import Sequential, Model  # Sequential — для простой модели, Model — для кастомной
+from tensorflow.keras.layers import Conv2D, Dense, Flatten, Dropout, MaxPooling2D, Input  # Слои модели
+from tensorflow.keras.utils import to_categorical  # Преобразование меток в one-hot
+import numpy as np  # Для работы с массивами
+import matplotlib.pyplot as plt  # Для построения графиков
 
-# Гиперпараметры
-IMG_SIZE = 500
-BATCH_SIZE = 128
-EPOCHS = 20
-FINE_TUNE_EPOCHS = 5
+# === CIFAR-10: Загрузка встроенного датасета из 10 классов
+(train_images, train_labels), (test_images, test_labels) = keras.datasets.cifar10.load_data()
 
-# Функция для загрузки данных из CIFAR-10
-def load_cifar10_batch(file_path):
-    with open(file_path, 'rb') as file:
-        batch = pickle.load(file, encoding='bytes')
-    images = batch[b'data'].reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1)
-    labels = np.array(batch[b'labels'])
-    return images, labels
+# Вычисляем среднее и стандартное отклонение изображений
+mean = np.mean(train_images)
+stddev = np.std(train_images)
 
-# Указываем путь к распакованным данным
-data_path = r"C:\Users\Public\Documents\cifar-10-batches-py"
+# Нормализуем изображения: делаем нули средними, единицу — стандартным отклонением
+train_images = (train_images - mean) / stddev
+test_images = (test_images - mean) / stddev
 
-# Загрузка тренировочных данных
-train_images, train_labels = [], []
-for i in range(1, 6):
-    images, labels = load_cifar10_batch(os.path.join(data_path, f"data_batch_{i}"))
-    train_images.append(images)
-    train_labels.append(labels)
+# Переводим метки в формат one-hot, например: 3 → [0,0,0,1,0,0,0,0,0,0]
+train_labels = to_categorical(train_labels, 10)
+test_labels = to_categorical(test_labels, 10)
 
-train_images = np.vstack(train_images)
-train_labels = np.hstack(train_labels)
 
-# Загрузка тестового набора
-test_images, test_labels = load_cifar10_batch(os.path.join(data_path, "test_batch"))
+conf5_layers = [
+    Conv2D(64, (4, 4), strides=(1, 1), activation="relu", padding="same"),  # Свёртка 64 фильтра 4x4, шаг 1
+    Conv2D(64, (2, 2), strides=(2, 2), activation="relu", padding="same"),  # Свёртка 64 фильтра 2x2, шаг 2 (уменьшит размер вдвое)
+    Conv2D(32, (3, 3), strides=(1, 1), activation="relu", padding="same"),  # Свёртка 32 фильтра
+    Conv2D(32, (3, 3), strides=(1, 1), activation="relu", padding="same"),  # Ещё одна свёртка
+    MaxPooling2D(pool_size=(2, 2)),  # Пулинг — уменьшаем размер изображения
+    Dropout(0.2),  # Dropout — регуляризация, случайно отключаем 20% нейронов
+    Dense(64, activation="relu"),  # Полносвязный слой на 64 нейрона
+    Dropout(0.2),  # Ещё один Dropout
+    Dense(64, activation="relu"),  # Ещё полносвязный слой
+    Flatten(),  # Преобразуем тензор в вектор перед последним слоем
+    Dropout(0.2),  # Последний Dropout
+    Dense(10, activation="softmax"),  # Выходной слой: 10 классов, softmax для вероятностей
+]
 
-# Нормализация данных
-train_images = train_images.astype('float32') / 255.0
-test_images = test_images.astype('float32') / 255.0
+# Собираем модель: вход 32x32x3 + все слои из списка
+cifar_model = Sequential([keras.Input(shape=(32, 32, 3))] + conf5_layers)
 
-# One-hot кодирование меток
-train_labels = to_categorical(train_labels, num_classes=10)
-test_labels = to_categorical(test_labels, num_classes=10)
-
-# Функция для отображения случайных 10 изображений
-def show_random_images(images, labels, class_names, num_samples=10):
-    indices = random.sample(range(len(images)), num_samples)
-    plt.figure(figsize=(10, 5))
-    for i, idx in enumerate(indices):
-        plt.subplot(2, 5, i + 1)
-        plt.imshow(images[idx])
-        plt.title(class_names[np.argmax(labels[idx])])
-        plt.axis("off")
-    plt.show()
-
-class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-show_random_images(test_images, test_labels, class_names)
-
-# Создание модели по конфигурации 6
-model = Sequential([
-    Conv2D(64, (4, 4), activation='tanh', padding='same', input_shape=(32, 32, 3)),
-    MaxPooling2D(pool_size=(2, 2)),
-    Conv2D(64, (2, 2), activation='tanh', padding='same'),
-    MaxPooling2D(pool_size=(2, 2)),
-    Conv2D(32, (3, 3), activation='tanh', padding='same'),
-    Conv2D(32, (3, 3), activation='tanh', padding='same'),
-    MaxPooling2D(pool_size=(2, 2)),
-    Flatten(),
-    Dense(64, activation='tanh'),
-    Dense(64, activation='tanh'),
-    Dense(10, activation='softmax')
-])
-
-# Компиляция модели
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0005), loss='categorical_crossentropy', metrics=['accuracy'])
+# Компиляция модели: оптимизатор Adam, кросс-энтропия как функция потерь, метрика — accuracy
+cifar_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
 # Обучение модели
-model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=EPOCHS, batch_size=BATCH_SIZE)
+history = cifar_model.fit(
+    train_images,              # входные изображения
+    train_labels,              # соответствующие метки
+    validation_data=(test_images, test_labels),  # валидация на test-наборе
+    epochs=20,                  # 5 эпох обучения
+    batch_size=32,            # размер батча
+    verbose=2                 # подробный вывод
+)
 
-# Размораживание слоев для дообучения (fine-tuning)
-for layer in model.layers[:-3]:
-    layer.trainable = True
+# Сохраняем модель в файл
+cifar_model.save("cifar_model.h5")
+print("Модель успешно сохранена в 'cifar_model.h5'")
 
-# Компиляция после разморозки
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
+# === График потерь на обучении и валидации
+plt.figure(figsize=(12, 5))
+plt.plot(history.history["loss"], label="Train Loss")         # Потери на обучении
+plt.plot(history.history["val_loss"], label="Val Loss")       # Потери на валидации
+plt.legend()
+plt.title("Потери на обучении и валидации")
+plt.grid()
+plt.show()
 
-# Переобучение модели
-model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=FINE_TUNE_EPOCHS, batch_size=BATCH_SIZE)
+# === График точности на обучении и валидации
+plt.figure(figsize=(12, 5))
+plt.plot(history.history["accuracy"], label="Train Accuracy")      # Точность на обучении
+plt.plot(history.history["val_accuracy"], label="Val Accuracy")    # Точность на валидации
+plt.legend()
+plt.title("Точность на обучении и валидации")
+plt.grid()
+plt.show()
 
-# Отображение случайных предсказаний
-def show_random_predictions(model, images, labels, class_names, num_samples=10):
-    indices = random.sample(range(len(images)), num_samples)
-    predictions = model.predict(images[indices])
-    plt.figure(figsize=(10, 5))
-    for i, idx in enumerate(indices):
-        plt.subplot(2, 5, i + 1)
-        plt.imshow(images[idx])
-        plt.title(f"Pred: {class_names[np.argmax(predictions[i])]}\nTrue: {class_names[np.argmax(labels[idx])]}")
-        plt.axis("off")
-    plt.show()
+# === CIFAR-100: используем как новую задачу для трансферного обучения
+(cifar100_x, cifar100_y), (cifar100_val_x, cifar100_val_y) = keras.datasets.cifar100.load_data(label_mode="fine")
 
-show_random_predictions(model, test_images, test_labels, class_names)
+# Увеличиваем изображения с 32x32 до 500x500 и нормализуем их
+cifar100_x = tf.image.resize(cifar100_x, (500, 500)) / 255.0
+cifar100_val_x = tf.image.resize(cifar100_val_x, (500, 500)) / 255.0
+
+# Переводим метки CIFAR-100 в формат one-hot (100 классов)
+cifar100_y = to_categorical(cifar100_y, 100)
+cifar100_val_y = to_categorical(cifar100_val_y, 100)
+
+# Загружаем предобученную модель (CIFAR-10)
+base_model = keras.models.load_model("cifar_model.h5")
+print("Предобученная модель успешно загружена")
+
+# Удаляем последний слой (Dense на 10 классов) и замораживаем остальные
+base_model_layers = base_model.layers[:-1]
+for layer in base_model_layers:
+    layer.trainable = False  # Не обновляем веса этих слоёв при обучении
+
+# Новый входной слой для изображений 500x500x3
+new_input = Input(shape=(500, 500, 3))
+x = new_input
+
+# Прогоняем вход через все слои старой модели (без последнего)
+for layer in base_model_layers:
+    x = layer(x)
+
+# Новый выходной слой: 100 классов вместо 10
+output = Dense(100, activation="softmax")(x)
+
+# Создаём новую модель с новым входом и выходом
+lung_model = Model(inputs=new_input, outputs=output)
+
+# Компилируем модель
+lung_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+
+# Обучаем модель на CIFAR-100 (трансферное обучение)
+history = lung_model.fit(
+    cifar100_x,
+    cifar100_y,
+    validation_data=(cifar100_val_x, cifar100_val_y),
+    epochs=20,      # Кол-во эпох
+    verbose=2      # Подробный вывод
+)
+
+# === График потерь трансферной модели
+plt.figure(figsize=(12, 5))
+plt.plot(history.history["loss"], label="Train Loss")
+plt.plot(history.history["val_loss"], label="Val Loss")
+plt.legend()
+plt.title("Потери на обучении и валидации (CIFAR-100)")
+plt.grid()
+plt.show()
+
+# === График точности трансферной модели
+plt.figure(figsize=(12, 5))
+plt.plot(history.history["accuracy"], label="Train Accuracy")
+plt.plot(history.history["val_accuracy"], label="Val Accuracy")
+plt.legend()
+plt.title("Точность на обучении и валидации (CIFAR-100)")
+plt.grid()
+plt.show()
